@@ -15,7 +15,7 @@ public Plugin:myinfo =
 {
 	name = "[Shop] Respawn",
 	author = "R1KO",
-	version = "1.1"
+	version = "1.2"
 };
 
 public OnPluginStart()
@@ -36,6 +36,8 @@ public OnPluginStart()
 	CloseHandle(hCvar);
 
 	AutoExecConfig(true, "shop_respawn", "shop");
+	
+	HookEvent("round_start", Event_OnRoundStart, EventHookMode_Post);
 	
 	if (Shop_IsStarted()) Shop_Started();
 }
@@ -97,4 +99,12 @@ public ShopAction:OnItemUse(iClient, CategoryId:category_id, const String:catego
 		return Shop_UseOn;
 	} else PrintToChat(iClient, "Вы должны быть мертвы и в команде!");
 	return Shop_Raw;
+}
+
+public Event_OnRoundStart(Handle:event, const String:name[], bool:dontBroadcast)
+{
+	for (new i = 1; i <= MaxClients; i++)
+	{
+		g_iRoundUsed[i] = 0;
+	}
 }

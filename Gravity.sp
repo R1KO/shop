@@ -7,14 +7,16 @@
 
 new bool:g_bHasGrav[MAXPLAYERS+1];
 new Handle:g_hPrice,
+	Handle:g_hSellPrice,
 	Handle:g_hDuration,
+	Handle:g_hGravityValue,
 	ItemId:id;
 
 public Plugin:myinfo =
 {
 	name = "[Shop] Gravity",
 	author = "R1KO",
-	version = "1.3"
+	version = "1.4"
 };
 
 public OnPluginStart()
@@ -22,8 +24,14 @@ public OnPluginStart()
 	g_hPrice = CreateConVar("sm_shop_gravity_price", "1000", "Стоимость пониженой гравитации.");
 	HookConVarChange(g_hPrice, OnConVarChange);
 	
+	g_hSellPrice = CreateConVar("sm_shop_gravity_sellprice", "500", "Стоимость продажи пониженой гравитации. -1 - запрет продажи");
+	HookConVarChange(g_hSellPrice, OnConVarChange);
+	
 	g_hDuration = CreateConVar("sm_shop_gravity_duration", "86400", "Длительность пониженой гравитации в секундах.");
 	HookConVarChange(g_hDuration, OnConVarChange);
+	
+	g_hGravityValue = CreateConVar("sm_shop_gravity_value", "0.6", "Значение изменения гравитации.", _, true, 0.1, true, 0.9);
+	HookConVarChange(g_hGravityValue, OnConVarChange);
 
 	AutoExecConfig(true, "shop_gravity", "shop");
 
@@ -35,6 +43,7 @@ public OnConVarChange(Handle:hCvar, const String:oldValue[], const String:newVal
 	if(id != INVALID_ITEM)
 	{
 		if(hCvar == g_hPrice) Shop_SetItemPrice(id, GetConVarInt(hCvar));
+		if(hCvar == g_hSellPrice) Shop_SetItemSellPrice(id, GetConVarInt(hCvar));
 		else if(hCvar == g_hDuration) Shop_SetItemValue(id, GetConVarInt(hCvar));
 	}
 }
@@ -47,7 +56,7 @@ public Shop_Started()
 	
 	if (Shop_StartItem(category_id, ITEM))
 	{
-		Shop_SetInfo("Пониженая гравитация", "", GetConVarInt(g_hPrice), -1, Item_Togglable, GetConVarInt(g_hDuration));
+		Shop_SetInfo("Пониженая гравитация", "", GetConVarInt(g_hPrice), GetConVarInt(g_hSellPrice), Item_Togglable, GetConVarInt(g_hDuration));
 		Shop_SetCallbacks(OnItemRegistered, OnGravUsed);
 		Shop_EndItem();
 	}
@@ -69,7 +78,7 @@ public ShopAction:OnGravUsed(iClient, CategoryId:category_id, const String:categ
 
 	g_bHasGrav[iClient] = true;
 
-	SetEntityGravity(iClient, 0.6);
+	SetEntityGravity(iClient, GetConVarFloat(g_hGravityValue));
 
 	return Shop_UseOn;
 }
